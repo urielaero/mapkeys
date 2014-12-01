@@ -69,7 +69,7 @@ class Daemon(threading.Thread):
     def make_cliente(self):
         socket_client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
-            socket_client.connect(("127.0.0.1",1338))
+            socket_client.connect(("192.168.0.6",1338))
         except:
             pass#no online
 
@@ -79,7 +79,7 @@ class Daemon(threading.Thread):
         #si lo envio!
         res = False
         try:
-            self.socket_client.send(json.dumps(keys))
+            self.socket_client.sendall(json.dumps(keys))
             res = self.socket_client.recv(1000)
         except:
             self.make_cliente()#try reconect
@@ -87,7 +87,12 @@ class Daemon(threading.Thread):
         if res == 'OK':
             print "ENVIADO BIEN"
             return True
+        else:
+            print "res",res
         return False
+
+    def close_socket(self):
+        self.socket_client.close()
 
 class FileWR(object):
     
@@ -115,6 +120,7 @@ if __name__ == '__main__':
             time.sleep(1)
     except KeyboardInterrupt:
         print "stop all"
+        daemon.close_socket()
         for thread in threading.enumerate():
             if thread.isAlive():
                 try:
